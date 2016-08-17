@@ -11,6 +11,7 @@
   "devDependencies": {
     "d3": "^4.2.1",
     "html-webpack-plugin": "^2.22.0",
+    "json-loader": "^0.5.4",
     "node-sass": "^3.8.0",
     "sass-loader": "^4.0.0",
     "source-map-loader": "^0.1.5",

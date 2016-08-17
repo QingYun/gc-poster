@@ -1,0 +1,376 @@
+{
+  "EGY": {
+    "country_name": "Egypt", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      88.39539, 
+      96.21651, 
+      null
+    ], 
+    "population": [
+      58922018.0, 
+      63595629.0, 
+      68334905.0, 
+      73596068.0, 
+      78976122.0
+    ]
+  }, 
+  "BGD": {
+    "country_name": "Bangladesh", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      null, 
+      null, 
+      92.84166
+    ], 
+    "population": [
+      110987459.0, 
+      120987124.0, 
+      131280739.0, 
+      140843786.0, 
+      148252473.0
+    ]
+  }, 
+  "NGA": {
+    "country_name": "Nigeria", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      65.95706, 
+      67.64276, 
+      64.60253
+    ], 
+    "population": [
+      100592458.0, 
+      111164651.0, 
+      122876723.0, 
+      136033321.0, 
+      151115683.0
+    ]
+  }, 
+  "USA": {
+    "country_name": "United States", 
+    "primary_school_enrolment_rate": [
+      null, 
+      96.46288, 
+      97.61687, 
+      94.43625, 
+      97.48575
+    ], 
+    "population": [
+      256514000.0, 
+      269394000.0, 
+      282162411.0, 
+      292805298.0, 
+      304093966.0
+    ]
+  }, 
+  "DEU": {
+    "country_name": "Germany", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      99.87581, 
+      99.80516, 
+      99.60066
+    ], 
+    "population": [
+      80624598.0, 
+      81914831.0, 
+      82211508.0, 
+      82516260.0, 
+      82110097.0
+    ]
+  }, 
+  "IDN": {
+    "country_name": "Indonesia", 
+    "primary_school_enrolment_rate": [
+      94.51852, 
+      92.55698, 
+      null, 
+      89.65066, 
+      95.81192
+    ], 
+    "population": [
+      187762097.0, 
+      199926615.0, 
+      211540428.0, 
+      223268606.0, 
+      235360765.0
+    ]
+  }, 
+  "ETH": {
+    "country_name": "Ethiopia", 
+    "primary_school_enrolment_rate": [
+      null, 
+      26.13699, 
+      40.15542, 
+      50.27604, 
+      76.78814
+    ], 
+    "population": [
+      51602776.0, 
+      59076414.0, 
+      66443603.0, 
+      74506974.0, 
+      83079608.0
+    ]
+  }, 
+  "PAK": {
+    "country_name": "Pakistan", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      null, 
+      66.6362, 
+      71.91156
+    ], 
+    "population": [
+      113616165.0, 
+      125697651.0, 
+      138250487.0, 
+      150267989.0, 
+      163096985.0
+    ]
+  }, 
+  "VNM": {
+    "country_name": "Vietnam", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      97.36072, 
+      null, 
+      97.27408
+    ], 
+    "population": [
+      68450100.0, 
+      73156700.0, 
+      77630900.0, 
+      81436400.0, 
+      85118700.0
+    ]
+  }, 
+  "TCA": {
+    "country_name": "Turks and Caicos Islands", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      null, 
+      84.38744, 
+      null
+    ], 
+    "population": [
+      12970.0, 
+      15967.0, 
+      18876.0, 
+      25025.0, 
+      29481.0
+    ]
+  }, 
+  "FRA": {
+    "country_name": "France", 
+    "primary_school_enrolment_rate": [
+      99.59395, 
+      99.71414, 
+      99.57321, 
+      99.05885, 
+      99.14919
+    ], 
+    "population": [
+      58851216.0, 
+      59753098.0, 
+      60912498.0, 
+      62704897.0, 
+      64374990.0
+    ]
+  }, 
+  "CHN": {
+    "country_name": "China", 
+    "primary_school_enrolment_rate": [
+      97.19181, 
+      90.91295, 
+      null, 
+      null, 
+      null
+    ], 
+    "population": [
+      1164970000.0, 
+      1217550000.0, 
+      1262645000.0, 
+      1296075000.0, 
+      1324655000.0
+    ]
+  }, 
+  "AUS": {
+    "country_name": "Australia", 
+    "primary_school_enrolment_rate": [
+      96.64062, 
+      94.94868, 
+      94.12448, 
+      95.01592, 
+      96.71986
+    ], 
+    "population": [
+      17495000.0, 
+      18311000.0, 
+      19153000.0, 
+      20127400.0, 
+      21249200.0
+    ]
+  }, 
+  "JAM": {
+    "country_name": "Jamaica", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      93.5645, 
+      93.21868, 
+      null
+    ], 
+    "population": [
+      2423044.0, 
+      2509923.0, 
+      2589389.0, 
+      2634145.0, 
+      2671934.0
+    ]
+  }, 
+  "IRN": {
+    "country_name": "Iran", 
+    "primary_school_enrolment_rate": [
+      96.36691, 
+      null, 
+      85.25191, 
+      96.40629, 
+      null
+    ], 
+    "population": [
+      58130099.0, 
+      61306632.0, 
+      65850062.0, 
+      69321953.0, 
+      72530693.0
+    ]
+  }, 
+  "THA": {
+    "country_name": "Thailand", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      null, 
+      null, 
+      95.06855
+    ], 
+    "population": [
+      57761574.0, 
+      59878955.0, 
+      62693322.0, 
+      65404522.0, 
+      66453255.0
+    ]
+  }, 
+  "JPN": {
+    "country_name": "Japan", 
+    "primary_school_enrolment_rate": [
+      99.96924, 
+      null, 
+      99.97021, 
+      99.96656, 
+      99.98215
+    ], 
+    "population": [
+      124229000.0, 
+      125757000.0, 
+      126843000.0, 
+      127761000.0, 
+      128063000.0
+    ]
+  }, 
+  "PHL": {
+    "country_name": "Philippines", 
+    "primary_school_enrolment_rate": [
+      95.53177, 
+      95.68161, 
+      null, 
+      89.77022, 
+      89.05935
+    ], 
+    "population": [
+      65078901.0, 
+      71437381.0, 
+      77932247.0, 
+      84596249.0, 
+      90297115.0
+    ]
+  }, 
+  "IND": {
+    "country_name": "India", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      84.13654, 
+      null, 
+      96.98704
+    ], 
+    "population": [
+      906461358.0, 
+      979290432.0, 
+      1053481072.0, 
+      1126419321.0, 
+      1197070109.0
+    ]
+  }, 
+  "RUS": {
+    "country_name": "Russia", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      null, 
+      null, 
+      94.78317
+    ], 
+    "population": [
+      148689000.0, 
+      148160042.0, 
+      146596557.0, 
+      144067054.0, 
+      142742350.0
+    ]
+  }, 
+  "MEX": {
+    "country_name": "Mexico", 
+    "primary_school_enrolment_rate": [
+      97.25143, 
+      96.15057, 
+      98.58148, 
+      97.38411, 
+      94.80515
+    ], 
+    "population": [
+      89110043.0, 
+      96181710.0, 
+      102808590.0, 
+      108257822.0, 
+      114972821.0
+    ]
+  }, 
+  "BRA": {
+    "country_name": "Brazil", 
+    "primary_school_enrolment_rate": [
+      null, 
+      null, 
+      null, 
+      null, 
+      null
+    ], 
+    "population": [
+      155379009.0, 
+      165303155.0, 
+      175786441.0, 
+      186116363.0, 
+      194769696.0
+    ]
+  }
+}

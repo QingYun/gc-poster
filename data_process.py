@@ -5,6 +5,7 @@ import csv
 
 COUNTRY_CODE_FILE = "WDI_Country.csv"
 DATA_FILE = "WDI_Data.csv"
+OLYMPIC_FILE = "Summer Olympic medallists 1896 to 2008 - ALL MEDALISTS.csv"
 INDICATORS = {
     "SP.POP.TOTL": "population",
     "SE.PRM.TENR": "primary_school_enrolment_rate"
@@ -65,6 +66,26 @@ def filterCSV(file, conditions, wanted, cb):
                     data_wanted[display_name] = row[col_index]
                 cb(data_wanted)
 
+def getMedalTable(file, country_list):
+    with open(file, "rb") as csvfile:
+        content = csv.reader(csvfile)
+        content.next()
+
+        recorded = set()
+        for row in content:
+            if int(row[1]) < 1992: continue
+            if row[5] not in country_list: continue
+            recorded.add((row[1], row[2], row[3], row[5], row[6], row[7], row[8]))
+
+        table = {}
+        for y in xrange(1992, 2009, 4):
+            table[y] = {}
+            for c in country_list:
+                table[y][c] = 0
+        for (y, _, _, cc, _, _, _) in recorded:
+            table[int(y)][cc] = table[int(y)][cc] + 1
+        return table
+
 def parse(target_file, data_folder):
     print "filling data into [{}] ...".format(target_file)
 
@@ -92,6 +113,15 @@ def parse(target_file, data_folder):
             INDICATORS[columns["ic"]]: takeYears(columns)
         })
     filterCSV(os.path.join(data_folder, DATA_FILE), filter_conditions, columns_wanted, addToJSON)
+
+    # table = getMedalTable(os.path.join(data_folder, OLYMPIC_FILE), json_dict.keys())
+    # print table
+    # for cc in json_dict.keys():
+    #     medals = []
+    #     for year in xrange(1992, 2009, 4):
+    #         result = table[year][cc]
+    #         medals.append(result if result else 0)
+    #     json_dict[cc]["medals"] = medals
 
     writeJSON(target_file, json_dict)
 

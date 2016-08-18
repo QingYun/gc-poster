@@ -20,6 +20,11 @@ body {
   pointer-events: none;
 }
 
+.dashed-line {
+  stroke: black;
+  stroke-dasharray: 4,4;
+}
+
 .label {
   font-size: 24px;
 }

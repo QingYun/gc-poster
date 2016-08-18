@@ -10,25 +10,17 @@ import drawPiece from "./draw-piece";
 const data: Object = require("./data.json");
 
 const PAGE_WIDTH = 7016, PAGE_HEIGHT = 9933;
+const data_entry_number = _.keys(data).length;
 const population = _
   .chain(data)
   .values()
   .flatMap(obj => obj["population"])
   .value();
-
-const y_scale = scaleLinear<number>()
-  .range([800, 0])
-  .domain([_.min(population), _.max(population)]);
-
-const elm_piece = drawPiece({
-  data: {
-    country: data["AUS"]["country_name"],
-    variable: data["AUS"]["population"],
-    getY: d => y_scale(d)
-  },
-  width: 800,
-  height: 800
-});
+const medal_counts = _
+  .chain(data)
+  .values()
+  .flatMap(obj => obj["medals"])
+  .value();
 
 const svg = d3.select("body")
   .append("svg")
@@ -37,8 +29,18 @@ const svg = d3.select("body")
     .append("g")
       .attr("transform", "translate(50, 20)");
 
-const formatNumber = d3.format(".0f");
-const y_axis = axisLeft(y_scale)
+const GRAPH_HEIGHT = 1600;
+
+const medalScale = scaleLinear<number>()
+  .range([0, GRAPH_HEIGHT / 2])
+  .domain([0, _.max(medal_counts)]);
+
+const scale = scaleLinear<number>()
+  .range([GRAPH_HEIGHT, 0])
+  .domain([0, _.max(population) + 1500000000]);
+
+const formatNumber = d3.format(".1f");
+const y_axis = axisLeft(scale)
   .tickFormat(x => {
     const v = Math.abs(x);
     return (v >= .9995e9 ? x => formatNumber(x / 1e9) + "B"
@@ -58,4 +60,21 @@ svg.append("g")
     .style("test-anchor", "end")
     .text("Population");
 
-svg.append(() => elm_piece);
+const piece_width = PAGE_WIDTH / 2 / data_entry_number;
+_(data)
+.values()
+.sortBy((v) => _.mean(v["population"]))
+.map(v => drawPiece({
+  data: {
+    country: v["country_name"],
+    variable: v["population"],
+    variableScale: d => scale(d),
+    medal_count: v["medals"],
+    medalScale
+  },
+  width: piece_width,
+  height: GRAPH_HEIGHT
+}))
+.each((elm, i) => {
+  svg.append(() => elm).attr("transform", `translate(${i * piece_width}, 0)`);
+});

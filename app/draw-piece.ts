@@ -9,11 +9,11 @@ function createElm(tag: string): SVGElement {
   return document.createElementNS("http://www.w3.org/2000/svg", tag);
 }
 
-export default ({ data: { country, variable, getY }, width, height }): SVGElement => {
+export default ({ data: { country, variable, variableScale, medal_count, medalScale }, width, height }): SVGElement => {
 
   const scale = scaleLinear<number>()
     .range([0, width])
-    .domain([years[0], years[years.length - 1]]);
+    .domain([years[0] - 4, years[years.length - 1] + 4]);
 
   const axis = axisBottom(scale)
     .tickValues(years)
@@ -32,19 +32,59 @@ export default ({ data: { country, variable, getY }, width, height }): SVGElemen
       .style("text-anchor", "middle")
       .text(country);
 
-  const elm_dots = createElm("g");
-  d3.select(elm_dots)
+  const getHeight = (_, i): number => Math.max(medalScale(medal_count[i]), 1);
+  const getY = (d, i): number => variableScale(d) - (_.ceil(medal_count[i] / 5) + 1) * (medalScale(5) + 1);
+  const zeroMedal = (t, f) =>
+    (d, i) => (medalScale(medal_count[i]) === 0) ? t(d, i) : f(d, i);
+  const fromAttr = (attr, transformer) =>
+    function () {
+      return transformer(d3.select(this).attr(attr));
+    };
+  ;
+
+  function drawBarSegments(medals) {
+    const segments = _.times(medals / 5, () => 5);
+    if (medals % 5 !== 0)
+      segments.push(medals % 5);
+
+    const segment_height = medalScale(5);
+    const total_height = segment_height * segments.length + (segments.length - 1) * 1;
+
+    const elm_g = createElm("g");
+    d3.select(elm_g)
+      .attr("class", "bar")
+      .selectAll(".bar-segments")
+      .data(segments)
+      .enter().append("rect")
+        .attr("class", "bar-segments")
+        .attr("x", 0)
+        .attr("width", 20)
+        .attr("transform", "translate(-10, 0)")
+        .attr("height", medalScale)
+        .attr("y", (d, i) => total_height - i * (segment_height + 1) + segment_height - medalScale(d));
+
+    return elm_g;
+  }
+
+  const elm_bars = createElm("g");
+  d3.select(elm_bars)
     .attr("transform", "translate(0, 0)")
-    .selectAll(".dot")
+    .selectAll(".bar")
     .data(variable)
-    .enter().append("circle")
-      .attr("class", "dot")
-      .attr("r", 3.5)
-      .attr("cx", (_, i): number => scale(years[i]))
-      .attr("cy", getY);
+    .enter().append(zeroMedal(() => createElm("line"), (d, i) => drawBarSegments(medal_count[i])))
+      .attr("class", zeroMedal(() => "dashed-line", () => "bar"))
+      .attr("x", (_, i): number => scale(years[i]))
+      .attr("y", getY)
+      .attr("transform", (d, i) => `translate(${scale(years[i])}, ${getY(d, i)})`)
+      .filter((d, i) => medalScale(medal_count[i]) === 0)
+        .attr("x1", fromAttr("x", x => x))
+        .attr("y1", d => variableScale(d) - 1)
+        .attr("x2", fromAttr("x", x => parseFloat(x) + 20))
+        .attr("y2", d => variableScale(d) - 1)
+        .attr("transform", "translate(-10, 0)");
 
   const elm_piece = createElm("g");
   elm_piece.appendChild(elm_year_axis);
-  elm_piece.appendChild(elm_dots);
+  elm_piece.appendChild(elm_bars);
   return elm_piece;
 };

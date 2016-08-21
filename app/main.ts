@@ -11,6 +11,7 @@ const data: Object = require("./data.json");
 
 const PAGE_WIDTH = 7016, PAGE_HEIGHT = 9933;
 const data_entry_number = _.keys(data).length;
+const GRAPH_WIDTH = PAGE_WIDTH * (2 / 3);
 const population = _
   .chain(data)
   .values()
@@ -24,10 +25,16 @@ const medal_counts = _
 
 const svg = d3.select("body")
   .append("svg")
-    .attr("width", PAGE_WIDTH)
+    .attr("width", PAGE_WIDTH + 100)
     .attr("height", PAGE_HEIGHT)
     .append("g")
-      .attr("transform", "translate(50, 20)");
+      .attr("transform", "translate(150, 200)");
+
+svg.append("text")
+  .attr("class", "graph-title")
+  .attr("x", GRAPH_WIDTH / 2)
+  .attr("text-anchor", "middle")
+  .text("Population vs. Olympic Medals");
 
 const GRAPH_HEIGHT = 1600;
 
@@ -60,7 +67,7 @@ svg.append("g")
     .style("test-anchor", "end")
     .text("Population");
 
-const piece_width = PAGE_WIDTH / 2 / data_entry_number;
+const piece_width = GRAPH_WIDTH / data_entry_number;
 _(data)
 .values()
 .sortBy((v) => _.mean(v["population"]))
@@ -78,3 +85,18 @@ _(data)
 .each((elm, i) => {
   svg.append(() => elm).attr("transform", `translate(${i * piece_width}, 0)`);
 });
+
+const legend = svg.append("g");
+legend.append("rect")
+  .attr("x", 300)
+  .attr("width", 30)
+  .attr("height", medalScale(5))
+  .style("fill", "#000");
+
+legend.append("text")
+  .attr("class", "legend")
+  .attr("x", 315)
+  .attr("y", 70)
+  .attr("dy", ".35em")
+  .style("text-anchor", "middle")
+  .text("5 Olympic Medals");

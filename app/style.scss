@@ -36,3 +36,52 @@ body {
 .legend {
   font-size: 24px;
 }
+
+$page-width: 9933px;
+$page-height: 7016px;
+
+@mixin quarter-box {
+  height: $page-height / 2.8;
+  width: $page-width / 2.8;
+  position: absolute;
+}
+
+.container {
+  height: $page-height;
+  position: relative;
+  width: $page-width;
+  overflow: hidden;
+  background-color: #fff6e8;
+}
+
+.graph-main {
+  height: $page-height * 1.5;
+  width: $page-width * 1.5;
+  position: absolute;
+  top: -25%;
+  left: -25%;
+}
+
+.graph-population {
+  @include quarter-box;
+  left: 6%;
+  bottom: 6%;
+}
+
+.graph-GDP {
+  @include quarter-box;
+  right: 6%;
+  top: 6%;
+}
+
+.graph-education {
+  @include quarter-box;
+  left: 6%;
+  top: 6%;
+}
+
+.graph-information {
+  @include quarter-box;
+  bottom: 6%;
+  right: 6%;
+}

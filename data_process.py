@@ -2,14 +2,18 @@ import sys, getopt
 import os
 import json
 import csv
+import requests
+import lxml.html
 
 COUNTRY_CODE_FILE = "WDI_Country.csv"
 DATA_FILE = "WDI_Data.csv"
-OLYMPIC_FILE = "Summer Olympic medallists 1896 to 2008 - ALL MEDALISTS.csv"
 INDICATORS = {
     "SP.POP.TOTL": "population",
     "SE.PRM.TENR": "primary_school_enrolment_rate"
 }
+
+def years():
+    return map(str, xrange(1992, 2013, 4))
 
 def getJSON(file):
     with open(file) as content:
@@ -66,25 +70,51 @@ def filterCSV(file, conditions, wanted, cb):
                     data_wanted[display_name] = row[col_index]
                 cb(data_wanted)
 
-def getMedalTable(file, country_list):
-    with open(file, "rb") as csvfile:
-        content = csv.reader(csvfile)
-        content.next()
+def getMedalTable(NOC_map):
+    def parseMedalCount(row):
+        cc = row.cssselect("span")[-1].text[1:-1]
+        count = int(row.cssselect("td")[-1].text)
+        return [cc, count]
 
-        recorded = set()
-        for row in content:
-            if int(row[1]) < 1992: continue
-            if row[5] not in country_list: continue
-            recorded.add((row[1], row[2], row[3], row[5], row[6], row[7], row[8]))
+    title_parts = ["Summer", "Olympics", "medal", "table"];
+    medal_table = {}
 
-        table = {}
-        for y in xrange(1992, 2009, 4):
-            table[y] = {}
-            for c in country_list:
-                table[y][c] = 0
-        for (y, _, _, cc, _, _, _) in recorded:
-            table[int(y)][cc] = table[int(y)][cc] + 1
-        return table
+    country_code_map_url = "https://en.wikipedia.org/wiki/Comparison_of_IOC,_FIFA,_and_ISO_3166_country_codes"
+    country_code_map_req = requests.get(country_code_map_url)
+    country_code_map = {}
+    def getCountryCode(code):
+        if len(country_code_map) == 0:
+            dom_tree = lxml.html.fromstring(country_code_map_req.text)
+            table = dom_tree.cssselect("table.wikitable")[0]
+            for row in table.cssselect("tr")[1:]:
+                tds = row.cssselect("td")
+                [IOC, ISO] = [tds[2].text, tds[4].text]
+                if IOC == None or IOC == ISO: continue
+                country_code_map.update({IOC: ISO})
+            print country_code_map
+
+        return country_code_map.get(code, code)
+
+    req_table = {}
+    for year in years():
+        url = "https://en.wikipedia.org/wiki/" + "_".join([year] + title_parts)
+        req_table[year] = requests.get(url)
+
+    for year in years():
+        medal_table[year] = {}
+        dom_tree = lxml.html.fromstring(req_table[year].text)
+        tables = dom_tree.cssselect("table.wikitable")
+
+        def takeMainTable(elm):
+            captions = elm.cssselect("caption")
+            return len(captions) > 0 and captions[0].text == " ".join([year] + title_parts)
+        [main_table] = filter(takeMainTable, tables)
+
+        for row in main_table.cssselect("tr")[1:-1]:
+            [cc, count] = parseMedalCount(row)
+            medal_table[year][getCountryCode(cc)] = count
+
+    return medal_table
 
 def parse(target_file, data_folder):
     print "filling data into [{}] ...".format(target_file)
@@ -98,30 +128,25 @@ def parse(target_file, data_folder):
     columns_wanted = {
         "Country Code": "cc",
         "Indicator Code": "ic",
-        "1992": "y1992",
-        "1996": "y1996",
-        "2000": "y2000",
-        "2004": "y2004",
-        "2008": "y2008",
-        "2012": "y2012"
     }
+    columns_wanted.update({y: "y" + y for y in years()})
     def takeYears(d):
         toFloat = lambda k: float(d[k]) if d[k] != "" else None
-        return map(toFloat, ["y{}".format(year) for year in xrange(1992, 2012 + 1, 4)])
+        return map(toFloat, ["y{}".format(year) for year in years()])
     def addToJSON(columns):
         json_dict[columns["cc"]].update({
             INDICATORS[columns["ic"]]: takeYears(columns)
         })
     filterCSV(os.path.join(data_folder, DATA_FILE), filter_conditions, columns_wanted, addToJSON)
 
-    # table = getMedalTable(os.path.join(data_folder, OLYMPIC_FILE), json_dict.keys())
-    # print table
-    # for cc in json_dict.keys():
-    #     medals = []
-    #     for year in xrange(1992, 2009, 4):
-    #         result = table[year][cc]
-    #         medals.append(result if result else 0)
-    #     json_dict[cc]["medals"] = medals
+    table = getMedalTable({})
+    for cc in json_dict.keys():
+        medals = []
+        for year in years():
+            if cc not in table[year]:
+                print "Missing country [{}] in [{}]".format(cc, year)
+            medals.append(table[year].get(cc, 0))
+        json_dict[cc]["medals"] = medals
 
     writeJSON(target_file, json_dict)
 

@@ -15,11 +15,15 @@ function createElm(tag, attr) {
   return elm;
 }
 
-const subgraph_titles = ["population", "GDP", "education", "information"];
-const subgraphs = subgraph_titles.map((name) => {
+const subgraph_columns = {
+  "population": "population",
+  "GDP": "GDP_per_capita",
+  "education": "primary_school_enrolment_rate"
+};
+const subgraphs = _.keys(subgraph_columns).map((key): [string, HTMLElement] => {
   const elm = document.createElement("div");
-  elm.setAttribute("class", `graph-${name}`);
-  return elm;
+  elm.setAttribute("class", `graph-${key}`);
+  return [key, elm];
 });
 
 const elm_root = createElm("div", { "class": "container" });
@@ -28,18 +32,18 @@ const elm_title = createElm("h1",  { "class": "title" });
 
 elm_root.appendChild(elm_main);
 elm_root.appendChild(elm_title);
-subgraphs.forEach((elm) => elm_root.appendChild(elm));
+subgraphs.forEach(([key, elm]) => elm_root.appendChild(elm));
 document.body.appendChild(elm_root);
 
 console.log(data);
 
-subgraphs.forEach((elm, i) => {
+subgraphs.forEach(([key, elm]) => {
   drawScatter(elm, {
-    title: `${_.capitalize(subgraph_titles[i])} vs. Medal`,
+    title: `${_.capitalize(key)} vs. Medal`,
     items: _.toPairs(data).map(([k, v]) => {
       return {
         name: v["country_name"],
-        data: _.zip(v["medals"], v["population"])
+        data: _.zip(v[subgraph_columns[key]], v["medals"])
       };
     }),
     formatter: n => numbro(n).format("0a")

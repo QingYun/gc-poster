@@ -4,7 +4,12 @@ import * as _ from "lodash";
 function toSerieItem(d: { name: string, data: [[number, number]] }) {
   return _.assign({
     type: "scatter",
-    symbolSize: 50
+    symbolSize: 50,
+    itemStyle: {
+      normal: {
+        color: "rgba(0, 0, 0, .5)"
+      }
+    }
   }, d);
 }
 
@@ -44,15 +49,12 @@ export default function drawScatter(elm_target: HTMLElement, options) {
     legend: {
       show: false
     },
-    xAxis: _.merge({
+    yAxis: _.merge({
       type: "value",
-      min: -1,
       axisLabel: { formatter }
     }, axis_style),
-    yAxis: _.merge({
+    xAxis: _.merge({
       type: "log",
-      min: 2000000,
-      max: 3000000000,
       axisLabel: { formatter }
     }, axis_style),
     series: items.map(toSerieItem)

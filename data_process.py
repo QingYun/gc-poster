@@ -9,7 +9,8 @@ COUNTRY_CODE_FILE = "WDI_Country.csv"
 DATA_FILE = "WDI_Data.csv"
 INDICATORS = {
     "SP.POP.TOTL": "population",
-    "SE.PRM.TENR": "primary_school_enrolment_rate"
+    "SE.PRM.TENR": "primary_school_enrolment_rate",
+    "NY.GDP.PCAP.CD": "GDP_per_capita"
 }
 
 def years():

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys, getopt
 import os
 import json
@@ -5,7 +6,6 @@ import csv
 import requests
 import lxml.html
 
-COUNTRY_CODE_FILE = "WDI_Country.csv"
 DATA_FILE = "WDI_Data.csv"
 INDICATORS = {
     "SP.POP.TOTL": "population",
@@ -38,10 +38,27 @@ def lookUpCSV(file, key_col, value_col):
 
         return lambda k: d[k]
 
-def fillCountryName(json_dict, file):
-    lookUp = lookUpCSV(file, "Country Code", "Short Name")
+def getCountryCodeDict(alias):
+    url = "https://en.wikipedia.org/wiki/Comparison_of_IOC,_FIFA,_and_ISO_3166_country_codes"
+    req = requests.get(url)
+    IOC_ISO_dict = {}
+    ISO_country_dict = {}
+    country_ISO_dict = {}
+    dom_tree = lxml.html.fromstring(req.text)
+    table = dom_tree.cssselect("table.wikitable")[0]
+    for row in table.cssselect("tr")[1:]:
+        tds = row.cssselect("td")
+        [country, IOC, ISO] = [tds[1].cssselect("a")[0].text] + map(lambda i: tds[i].text, [2, 4])
+        country = alias.get(country, country)
+        IOC_ISO_dict.update({IOC: ISO})
+        ISO_country_dict.update({ISO: country})
+        country_ISO_dict.update({country: ISO})
+
+    return [ISO_country_dict, IOC_ISO_dict, country_ISO_dict]
+
+def fillCountryName(json_dict, ISO_country_dict):
     for k in json_dict:
-        json_dict[k]["country_name"] = lookUp(k)
+        json_dict[k]["country_name"] = ISO_country_dict.get(k)
     return json_dict
 
 def filterCSV(file, conditions, wanted, cb):
@@ -71,7 +88,7 @@ def filterCSV(file, conditions, wanted, cb):
                     data_wanted[display_name] = row[col_index]
                 cb(data_wanted)
 
-def getMedalTable(NOC_map):
+def getMedalTable(IOC_ISO_dict):
     def parseMedalCount(row):
         cc = row.cssselect("span")[-1].text[1:-1]
         count = int(row.cssselect("td")[-1].text)
@@ -79,22 +96,6 @@ def getMedalTable(NOC_map):
 
     title_parts = ["Summer", "Olympics", "medal", "table"];
     medal_table = {}
-
-    country_code_map_url = "https://en.wikipedia.org/wiki/Comparison_of_IOC,_FIFA,_and_ISO_3166_country_codes"
-    country_code_map_req = requests.get(country_code_map_url)
-    country_code_map = {}
-    def getCountryCode(code):
-        if len(country_code_map) == 0:
-            dom_tree = lxml.html.fromstring(country_code_map_req.text)
-            table = dom_tree.cssselect("table.wikitable")[0]
-            for row in table.cssselect("tr")[1:]:
-                tds = row.cssselect("td")
-                [IOC, ISO] = [tds[2].text, tds[4].text]
-                if IOC == None or IOC == ISO: continue
-                country_code_map.update({IOC: ISO})
-            print country_code_map
-
-        return country_code_map.get(code, code)
 
     req_table = {}
     for year in years():
@@ -113,14 +114,67 @@ def getMedalTable(NOC_map):
 
         for row in main_table.cssselect("tr")[1:-1]:
             [cc, count] = parseMedalCount(row)
-            medal_table[year][getCountryCode(cc)] = count
+            medal_table[year][IOC_ISO_dict.get(cc, cc)] = count
 
     return medal_table
+
+def fillMedalCount(json_dict, medal_table):
+    for cc in json_dict.keys():
+        medals = []
+        for year in years():
+            if cc not in medal_table[year]:
+                print "Missing country [{}] in [{}]".format(cc, year)
+            medals.append(medal_table[year].get(cc, 0))
+        json_dict[cc]["medals"] = medals
+
+    return json_dict
+
+def getRadioReceiverTable(country_ISO_dict):
+    url = "http://www.nationmaster.com/country-info/stats/Media/Radio-receivers-per-1000"
+    dom_tree = lxml.html.fromstring(requests.get(url).text)
+    table_elm = dom_tree.cssselect(".table-main")[0]
+    radio_receiver_table = {}
+    for row in table_elm.cssselect("tbody tr"):
+        country = row.cssselect("td")[1].text_content().strip()
+        if country not in country_ISO_dict:
+            print "Missing country [{}] in country_ISO_dict".format(country)
+            continue
+
+        data_str = row.cssselect("span.spark")[0].get("values")
+        data_dict = {}
+        for [year, data] in map(lambda s: s.split(":"), data_str.split(",")):
+            data_dict[year] = float(data)
+
+        data_list = []
+        for year in years():
+            data_list.append(data_dict.get(year, None))
+
+        radio_receiver_table[country_ISO_dict.get(country)] = data_list
+
+    return radio_receiver_table
+
+def fillRadioReceiver(json_dict, radio_receiver_table):
+    for cc in json_dict.keys():
+        if cc not in radio_receiver_table:
+            print "Missing country [{}] in radio_receiver_table".format(cc)
+        json_dict[cc]["radio_receivers_per_1000"] = radio_receiver_table.get(cc, [None] * len(years()))
+
+    return json_dict
 
 def parse(target_file, data_folder):
     print "filling data into [{}] ...".format(target_file)
 
-    json_dict = fillCountryName(getJSON(target_file), os.path.join(data_folder, COUNTRY_CODE_FILE))
+    [ISO_country_dict, IOC_ISO_dict, country_ISO_dict] = getCountryCodeDict({
+        "Korea, Republic of (South)": "South Korea",
+        "Korea, Democratic People's Rep. (North)": "North Korea",
+        "China, People's Republic of": "China",
+        "Russian Federation": "Russia",
+        u"São Tomé and Príncipe": "Sao Tome and Principe",
+        u"Côte d'Ivoire": "Cote d'Ivoire",
+        "Timor-Leste": "East Timor",
+        "Congo, Democratic Republic of the": "Democratic Republic of the Congo"
+    })
+    json_dict = fillCountryName(getJSON(target_file), ISO_country_dict)
 
     filter_conditions = {
         "Country Code": json_dict.keys(),
@@ -140,14 +194,11 @@ def parse(target_file, data_folder):
         })
     filterCSV(os.path.join(data_folder, DATA_FILE), filter_conditions, columns_wanted, addToJSON)
 
-    table = getMedalTable({})
-    for cc in json_dict.keys():
-        medals = []
-        for year in years():
-            if cc not in table[year]:
-                print "Missing country [{}] in [{}]".format(cc, year)
-            medals.append(table[year].get(cc, 0))
-        json_dict[cc]["medals"] = medals
+    medal_table = getMedalTable(IOC_ISO_dict)
+    json_dict = fillMedalCount(json_dict, medal_table)
+
+    radio_receiver_table = getRadioReceiverTable(country_ISO_dict)
+    json_dict = fillRadioReceiver(json_dict, radio_receiver_table)
 
     writeJSON(target_file, json_dict)
 

@@ -18,7 +18,8 @@ function createElm(tag, attr) {
 const subgraph_columns = {
   "population": "population",
   "GDP": "GDP_per_capita",
-  "education": "primary_school_enrolment_rate"
+  "education": "primary_school_enrolment_rate",
+  "information": "radio_receivers_per_1000"
 };
 const subgraphs = _.keys(subgraph_columns).map((key): [string, HTMLElement] => {
   const elm = document.createElement("div");

@@ -60,6 +60,13 @@ $page-height: 7016px;
   position: absolute;
   top: -25%;
   left: -25%;
+  display: none;
+}
+
+.graph {
+  height: $page-height / 3;
+  width: $page-width / 3;
+  display: inline-block;
 }
 
 .graph-population {

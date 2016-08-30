@@ -7,6 +7,10 @@ import * as _ from "lodash";
 const data = require("./data.json");
 import drawScatter from "./draw-scatter";
 
+const renderers = {
+  "scatter-plot": drawScatter
+};
+
 function createElm(tag, attr) {
   const elm = document.createElement(tag);
   _.toPairs(attr).forEach(([k, v]) => {
@@ -16,15 +20,17 @@ function createElm(tag, attr) {
 }
 
 const subgraph_columns = {
-  "population": "population",
-  "GDP": "GDP_per_capita",
-  "education": "primary_school_enrolment_rate",
-  "information": "radio_receivers_per_1000"
+  "population": {column: "population", graph: "scatter-plot"},
+  "GDP": {column: "GDP_per_capita", graph: "scatter-plot"},
+  "education": {column: "primary_school_enrolment_rate", graph: "scatter-plot"},
+  "health": {column: "life_expectancy", graph: "scatter-plot"},
+  "urbanization": {column: "urban_population", graph: "scatter-plot"},
+  "information": {column: "radio_receivers_per_1000", graph: "scatter-plot"}
 };
-const subgraphs = _.keys(subgraph_columns).map((key): [string, HTMLElement] => {
+const subgraphs = _.toPairs(subgraph_columns).map(([key, value]): [string, {column: string, graph: string}, HTMLElement] => {
   const elm = document.createElement("div");
-  elm.setAttribute("class", `graph-${key}`);
-  return [key, elm];
+  elm.setAttribute("class", `graph`);
+  return [key, value, elm];
 });
 
 const elm_root = createElm("div", { "class": "container" });
@@ -33,18 +39,18 @@ const elm_title = createElm("h1",  { "class": "title" });
 
 elm_root.appendChild(elm_main);
 elm_root.appendChild(elm_title);
-subgraphs.forEach(([key, elm]) => elm_root.appendChild(elm));
+subgraphs.forEach(([key, value, elm]) => elm_root.appendChild(elm));
 document.body.appendChild(elm_root);
 
 console.log(data);
 
-subgraphs.forEach(([key, elm]) => {
-  drawScatter(elm, {
+subgraphs.forEach(([key, value, elm]) => {
+  renderers[value.graph](elm, {
     title: `${_.capitalize(key)} vs. Medal`,
     items: _.toPairs(data).map(([k, v]) => {
       return {
         name: v["country_name"],
-        data: _.zip(v[subgraph_columns[key]], v["medals"])
+        data: _.zip(v[value.column], v["medals"])
       };
     }),
     formatter: n => numbro(n).format("0a")

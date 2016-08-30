@@ -5,12 +5,15 @@ import json
 import csv
 import requests
 import lxml.html
+import numpy
 
 DATA_FILE = "WDI_Data.csv"
 INDICATORS = {
     "SP.POP.TOTL": "population",
     "SE.PRM.TENR": "primary_school_enrolment_rate",
-    "NY.GDP.PCAP.CD": "GDP_per_capita"
+    "NY.GDP.PCAP.CD": "GDP_per_capita",
+    "SP.DYN.LE00.IN": "life_expectancy",
+    "SP.URB.TOTL.IN.ZS": "urban_population"
 }
 
 def years():
@@ -88,7 +91,7 @@ def filterCSV(file, conditions, wanted, cb):
                     data_wanted[display_name] = row[col_index]
                 cb(data_wanted)
 
-def getMedalTable(IOC_ISO_dict):
+def getMedalTable(IOC_ISO_dict, years):
     def parseMedalCount(row):
         cc = row.cssselect("span")[-1].text[1:-1]
         count = int(row.cssselect("td")[-1].text)
@@ -98,23 +101,30 @@ def getMedalTable(IOC_ISO_dict):
     medal_table = {}
 
     req_table = {}
-    for year in years():
+    for year in years:
         url = "https://en.wikipedia.org/wiki/" + "_".join([year] + title_parts)
         req_table[year] = requests.get(url)
 
-    for year in years():
+    for year in years:
         medal_table[year] = {}
         dom_tree = lxml.html.fromstring(req_table[year].text)
         tables = dom_tree.cssselect("table.wikitable")
 
-        def takeMainTable(elm):
-            captions = elm.cssselect("caption")
-            return len(captions) > 0 and captions[0].text == " ".join([year] + title_parts)
-        [main_table] = filter(takeMainTable, tables)
+        main_table = None
+        if len(tables) == 1:
+            [main_table] = tables
+        else:
+            def takeMainTable(elm):
+                captions = elm.cssselect("caption")
+                return len(captions) > 0 and captions[0].text == " ".join([year] + title_parts)
+            [main_table] = filter(takeMainTable, tables)
 
         for row in main_table.cssselect("tr")[1:-1]:
             [cc, count] = parseMedalCount(row)
             medal_table[year][IOC_ISO_dict.get(cc, cc)] = count
+
+            if row.get("bgcolor") == "#CCCCFF" or row.get("style") == "background:#ccf;":
+                medal_table[year]["__HOST"] = IOC_ISO_dict.get(cc, cc)
 
     return medal_table
 
@@ -126,6 +136,20 @@ def fillMedalCount(json_dict, medal_table):
                 print "Missing country [{}] in [{}]".format(cc, year)
             medals.append(medal_table[year].get(cc, 0))
         json_dict[cc]["medals"] = medals
+
+    return json_dict
+
+def fillHostConutry(json_dict, medal_table):
+    years = map(int, medal_table.keys())
+    years.sort()
+    for year in years[2:-2]:
+        host = medal_table[str(year)]["__HOST"]
+        if host in json_dict:
+            if "host" not in json_dict[host]:
+                json_dict[host]["host"] = []
+            json_dict[host]["host"].append(map( \
+                lambda o: medal_table[str(year + o)].get(host, 0), \
+                xrange(-8, 9, 4)))
 
     return json_dict
 
@@ -194,8 +218,9 @@ def parse(target_file, data_folder):
         })
     filterCSV(os.path.join(data_folder, DATA_FILE), filter_conditions, columns_wanted, addToJSON)
 
-    medal_table = getMedalTable(IOC_ISO_dict)
+    medal_table = getMedalTable(IOC_ISO_dict, map(str, xrange(1948, 2017, 4)))
     json_dict = fillMedalCount(json_dict, medal_table)
+    json_dict = fillHostConutry(json_dict, medal_table)
 
     radio_receiver_table = getRadioReceiverTable(country_ISO_dict)
     json_dict = fillRadioReceiver(json_dict, radio_receiver_table)

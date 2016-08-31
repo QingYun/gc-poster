@@ -1,7 +1,7 @@
 const echarts: any = require("echarts");
 import * as _ from "lodash";
 
-function toSerieItem(d: { name: string, data: [[number, number]] }) {
+function toSerieItem(d) {
   return _.assign({
     type: "scatter",
     symbolSize: 50,
@@ -21,7 +21,7 @@ const axis_style = {
   },
   axisLabel: {
     textStyle: {
-      fontSize: 48
+      fontSize: 64
     }
   },
   splitLine: {
@@ -32,7 +32,7 @@ const axis_style = {
 };
 
 export default function drawScatter(elm_target: HTMLElement, options) {
-  const { title, items, formatter } = options;
+  const { title, items, formatter, x_type } = options;
   const chart = echarts.init(elm_target);
   chart.setOption({
     title: {
@@ -45,7 +45,10 @@ export default function drawScatter(elm_target: HTMLElement, options) {
         color: "rgba(0, 0, 0, .5)"
       }
     },
-    tooltip: {},
+    grid: {
+      show: true,
+      containLabel: true,
+    },
     legend: {
       show: false
     },
@@ -54,7 +57,7 @@ export default function drawScatter(elm_target: HTMLElement, options) {
       axisLabel: { formatter }
     }, axis_style),
     xAxis: _.merge({
-      type: "log",
+      type: x_type || "log",
       axisLabel: { formatter }
     }, axis_style),
     series: items.map(toSerieItem)

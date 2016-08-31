@@ -6,9 +6,28 @@ import * as _ from "lodash";
 
 const data = require("./data.json");
 import drawScatter from "./draw-scatter";
+import drawPie from "./draw-pie";
 
-const renderers = {
-  "scatter-plot": drawScatter
+enum GraphType { ScatterPlot, PieChart };
+
+interface GraphOptions {
+  name: string;
+  column: string;
+  type: GraphType;
+  options: any;
+};
+
+interface GraphNode extends GraphOptions {
+  elm: HTMLDivElement;
+}
+
+interface RendererMap {
+  [index: number]: (target: HTMLElement, options: any) => void;
+}
+
+const renderers: RendererMap = {
+  [GraphType.ScatterPlot]: drawScatter,
+  [GraphType.PieChart]: drawPie
 };
 
 function createElm(tag, attr) {
@@ -19,18 +38,87 @@ function createElm(tag, attr) {
   return elm;
 }
 
-const subgraph_columns = {
-  "population": {column: "population", graph: "scatter-plot"},
-  "GDP": {column: "GDP_per_capita", graph: "scatter-plot"},
-  "education": {column: "primary_school_enrolment_rate", graph: "scatter-plot"},
-  "health": {column: "life_expectancy", graph: "scatter-plot"},
-  "urbanization": {column: "urban_population", graph: "scatter-plot"},
-  "information": {column: "radio_receivers_per_1000", graph: "scatter-plot"}
+const inRange = (min, max?) => (v) => {
+  if (v >= min) {
+    if (!max || v < max) {
+      return true;
+    }
+  }
+  return false;
 };
-const subgraphs = _.toPairs(subgraph_columns).map(([key, value]): [string, {column: string, graph: string}, HTMLElement] => {
+
+const medal_spliters = [
+  { inRange: inRange(0, 6), label: "0 ~ 5 Medals" },
+  { inRange: inRange(5, 16), label: "5 ~ 15 Medals" },
+  { inRange: inRange(15, 36), label: "15 ~ 35 Medals" },
+  { inRange: inRange(35), label: "35+ Medals" },
+];
+
+const subgraphs: GraphNode[] = [
+  {
+    name: "Population",
+    column: "population",
+    type: GraphType.ScatterPlot,
+    options: {
+      formatter: n => numbro(n).format("0a")
+    }
+  },
+  {
+    name: "GDP per capita",
+    column: "GDP_per_capita",
+    type: GraphType.ScatterPlot,
+    options: {
+      formatter: n => numbro(n).format("0a")
+    }
+  },
+  {
+    name: "education",
+    column: "primary_school_enrolment_rate",
+    type: GraphType.PieChart,
+    options: {
+      medal_spliters,
+      indie_spliters: [
+        { inRange: inRange(0, 65), label: "< 65%" },
+        { inRange: inRange(65, 95), label: "65% ~ 95%" },
+        { inRange: inRange(95), label: "> 95%" },
+      ]
+    }
+  },
+  {
+    name: "health",
+    column: "life_expectancy",
+    type: GraphType.PieChart,
+    options: {
+      medal_spliters,
+      indie_spliters: [
+        { inRange: inRange(0, 60), label: "< 60" },
+        { inRange: inRange(60, 70), label: "60 ~ 70" },
+        { inRange: inRange(70, 80), label: "70 ~ 80" },
+        { inRange: inRange(80), label: "> 80" },
+      ]
+    }
+  },
+  {
+    name: "urbanization",
+    column: "urban_population",
+    type: GraphType.ScatterPlot,
+    options: {
+      formatter: n => numbro(n).format("0a"),
+      x_type: "value"
+    }
+  },
+  {
+    name: "information",
+    column: "radio_receivers_per_1000",
+    type: GraphType.ScatterPlot,
+    options: {
+      formatter: n => numbro(n).format("0a"),
+    }
+  }
+].map((graph: GraphOptions): GraphNode => {
   const elm = document.createElement("div");
   elm.setAttribute("class", `graph`);
-  return [key, value, elm];
+  return <GraphNode>_.assign({ elm }, graph);
 });
 
 const elm_root = createElm("div", { "class": "container" });
@@ -39,24 +127,22 @@ const elm_title = createElm("h1",  { "class": "title" });
 
 elm_root.appendChild(elm_main);
 elm_root.appendChild(elm_title);
-subgraphs.forEach(([key, value, elm]) => elm_root.appendChild(elm));
+subgraphs.forEach((g) => elm_root.appendChild(g.elm));
 document.body.appendChild(elm_root);
 
-console.log(data);
-
-subgraphs.forEach(([key, value, elm]) => {
-  renderers[value.graph](elm, {
-    title: `${_.capitalize(key)} vs. Medal`,
+subgraphs.forEach((g) => {
+  renderers[g.type](g.elm, _.assign({
+    title: `${g.name} vs. Medal`,
     items: _.toPairs(data).map(([k, v]) => {
       return {
         name: v["country_name"],
-        data: _.zip(v[value.column], v["medals"])
+        data: _.zip(v[g.column], v["medals"])
       };
     }),
-    formatter: n => numbro(n).format("0a")
-  });
+  }, g.options));
 });
 
+/*
 const dataBJ = [
     [55,9,56,0.46,18,6,1],
     [25,11,21,0.65,34,9,2],
@@ -149,3 +235,5 @@ echarts.init(elm_main).setOption({
     }
   }]
 });
+
+*/

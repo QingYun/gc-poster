@@ -1,48 +1,50 @@
 const echarts: any = require("echarts");
 import * as _ from "lodash";
 
-function toSerieItem(d) {
+const toSerieItem = (font_base) => (d) => {
   return _.assign({
     type: "scatter",
-    symbolSize: 50,
+    symbolSize: font_base * 1.5,
     itemStyle: {
       normal: {
-        color: "rgba(0, 0, 0, .5)"
+        // color: "rgba(0, 0, 0, .5)"
       }
     },
     data: _.zip(d.independent, d.medals)
   }, d);
-}
-
-const axis_style = {
-  axisLine: {
-    lineStyle: {
-      width: 10
-    }
-  },
-  axisLabel: {
-    textStyle: {
-      fontSize: 64
-    }
-  },
-  splitLine: {
-    lineStyle: {
-      width: 2
-    }
-  }
 };
 
 export default function drawScatter(elm_target: HTMLElement, options) {
-  const { title, items, formatter, x_type } = options;
+  const { title, font_base, items, formatter, x_type } = options;
+
+  const axis_style = {
+    axisLine: {
+      lineStyle: {
+        width: font_base / 6
+      }
+    },
+    axisLabel: {
+      margin: font_base,
+      textStyle: {
+        fontSize: font_base * 1.5
+      }
+    },
+    splitLine: {
+      lineStyle: {
+        width: 2
+      }
+    }
+  };
+
   const chart = echarts.init(elm_target);
   chart.setOption({
     title: {
       text: title,
       top: "top",
       left: "center",
-      padding: 30,
+      padding: 0,
       textStyle: {
-        fontSize: 72,
+        fontSize: font_base * 2,
         color: "rgba(0, 0, 0, .5)"
       }
     },
@@ -61,6 +63,6 @@ export default function drawScatter(elm_target: HTMLElement, options) {
       type: x_type || "log",
       axisLabel: { formatter }
     }, axis_style),
-    series: items.map(toSerieItem)
+    series: items.map(toSerieItem(font_base))
   });
 };

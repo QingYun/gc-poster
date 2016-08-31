@@ -11,7 +11,7 @@ const item_style = {
   showSymbol: false,
   lineStyle: {
     normal: {
-      width: 10
+      width: 20
     }
   }
 };
@@ -28,26 +28,28 @@ function toSeries(items: ItemType[]) {
     .value();
 }
 
-const axis_style = {
-  axisLine: {
-    lineStyle: {
-      width: 10
-    }
-  },
-  axisLabel: {
-    textStyle: {
-      fontSize: 64
-    }
-  },
-  splitLine: {
-    lineStyle: {
-      width: 2
-    }
-  }
-};
-
 export default function drawLine(elm_target: HTMLElement, options) {
-  const { title, items, categories } = options;
+  const { title, font_base, items, categories } = options;
+
+  const axis_style = {
+    axisLine: {
+      lineStyle: {
+        width: font_base / 6
+      }
+    },
+    axisLabel: {
+      margin: font_base,
+      textStyle: {
+        fontSize: font_base * 1.5
+      }
+    },
+    splitLine: {
+      lineStyle: {
+        width: 2
+      }
+    }
+  };
+
   const series = toSeries(items);
   const chart = echarts.init(elm_target);
   chart.setOption({
@@ -55,9 +57,9 @@ export default function drawLine(elm_target: HTMLElement, options) {
       text: title,
       top: "top",
       left: "center",
-      padding: 30,
+      padding: 0,
       textStyle: {
-        fontSize: 72,
+        fontSize: font_base * 2,
         color: "rgba(0, 0, 0, .5)"
       }
     },
@@ -71,7 +73,7 @@ export default function drawLine(elm_target: HTMLElement, options) {
       data: categories
     }, axis_style),
     yAxis: _.merge({
-      type: "value"
+      type: "value",
     }, axis_style),
     series
   });

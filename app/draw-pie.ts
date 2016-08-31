@@ -26,7 +26,7 @@ interface Spliter {
 
 function toSeries(items: ItemType[], medal_spliters: Spliter[], indie_spliters: Spliter[]): SerieItem[] {
   const radius = 100 / medal_spliters.length;
-  const radius_width = radius * (3 / 5);
+  const radius_width = radius * (4 / 5);
   return _(items)
     .flatMap((item) => _.zip(item.independent, item.medals))
     .reduce<number[][]>((groups, [independent, medals]) => {
@@ -37,11 +37,12 @@ function toSeries(items: ItemType[], medal_spliters: Spliter[], indie_spliters: 
       });
       return groups;
     }, _.times(medal_spliters.length, () => new Array()))
-    .map<number[][]>((group, i) =>
+    .map<number[][]>((group, j) =>
       _.reduce(group, (groups, v) => {
           indie_spliters.forEach(({inRange, label}, i) => {
             if (v && inRange(v)) {
               groups[i].push(v);
+              if (i == 0) console.log(v, label, medal_spliters[j].label)
             }
           });
           return groups;
@@ -60,7 +61,7 @@ function toSeries(items: ItemType[], medal_spliters: Spliter[], indie_spliters: 
 }
 
 export default function drawPie(elm_target: HTMLElement, options) {
-  const { title, items, medal_spliters, indie_spliters } = options;
+  const { title, font_base, items, medal_spliters, indie_spliters } = options;
   const chart = echarts.init(elm_target);
   const series = toSeries(items, medal_spliters, indie_spliters);
   chart.setOption({
@@ -68,21 +69,21 @@ export default function drawPie(elm_target: HTMLElement, options) {
       text: title,
       top: "top",
       left: "center",
-      padding: 30,
+      padding: 0,
       textStyle: {
-        fontSize: 72,
+        fontSize: font_base * 2,
         color: "rgba(0, 0, 0, .5)"
       }
     },
     legend: {
       orient: "vertical",
       x: "right",
-      padding: [200, 100],
-      itemWidth: 120,
-      itemHeight: 60,
+      padding: [font_base * 2, font_base],
+      itemWidth: font_base * 2,
+      itemHeight: font_base,
       textStyle: {
         fontWeight: "bold",
-        fontSize: 64
+        fontSize: font_base
       },
       data: _.map(indie_spliters, "label")
     },

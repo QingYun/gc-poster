@@ -5,7 +5,7 @@ import json
 import csv
 import requests
 import lxml.html
-import numpy
+import numpy as np
 
 DATA_FILE = "WDI_Data.csv"
 INDICATORS = {
@@ -15,6 +15,11 @@ INDICATORS = {
     "SP.DYN.LE00.IN": "life_expectancy",
     "SP.URB.TOTL.IN.ZS": "urban_population"
 }
+
+def makePrediction(x, y):
+    z = np.polyfit(np.array(x), np.array(y), 2)
+    p = np.poly1d(z)
+    return p
 
 def years():
     return map(str, xrange(1992, 2013, 4))
@@ -86,7 +91,10 @@ def filterCSV(file, conditions, wanted, cb):
                     break
 
             if needed:
-                data_wanted = {}
+                data_wanted = {
+                    "__index_dict": {v: k for k, v in index_wanted.items()},
+                    "__row": row
+                }
                 for col_index, display_name in index_wanted.iteritems():
                     data_wanted[display_name] = row[col_index]
                 cb(data_wanted)
@@ -140,13 +148,14 @@ def fillMedalCount(json_dict, medal_table):
     return json_dict
 
 def fillHostConutry(json_dict, medal_table):
+    for cc in json_dict.keys():
+        json_dict[cc]["host"] = []
+
     years = map(int, medal_table.keys())
     years.sort()
     for year in years[2:-2]:
         host = medal_table[str(year)]["__HOST"]
         if host in json_dict:
-            if "host" not in json_dict[host]:
-                json_dict[host]["host"] = []
             json_dict[host]["host"].append(map( \
                 lambda o: medal_table[str(year + o)].get(host, 0), \
                 xrange(-8, 9, 4)))
@@ -170,8 +179,18 @@ def getRadioReceiverTable(country_ISO_dict):
             data_dict[year] = float(data)
 
         data_list = []
+        predictor = None
         for year in years():
-            data_list.append(data_dict.get(year, None))
+            data = None
+            if year not in data_dict:
+                if predictor is None:
+                    predictor = makePrediction( \
+                        *reduce(lambda acc, p: (acc[0] + [int(p[0])], acc[1] + [p[1]]), data_dict.items(), ([], [])) \
+                    )
+                data = predictor(int(year))
+            else:
+                data = data_dict[year]
+            data_list.append(data)
 
         radio_receiver_table[country_ISO_dict.get(country)] = data_list
 
@@ -207,11 +226,37 @@ def parse(target_file, data_folder):
     columns_wanted = {
         "Country Code": "cc",
         "Indicator Code": "ic",
+        "1960": "data_start"
     }
     columns_wanted.update({y: "y" + y for y in years()})
     def takeYears(d):
-        toFloat = lambda k: float(d[k]) if d[k] != "" else None
-        return map(toFloat, ["y{}".format(year) for year in years()])
+        predictor = None
+        data = []
+        latest_data_year = None
+        for year in years():
+            value = d["y{}".format(year)]
+            v = None
+            if value != "":
+                v = float(value)
+            else:
+                if predictor is None:
+                    start_index = d["__index_dict"]["data_start"]
+                    row = d["__row"]
+                    ys = []
+                    vs = []
+                    for i in xrange(0, 2016 - 1960):
+                        v = row[start_index + i]
+                        if v != "":
+                            ys.append(1960 + i)
+                            vs.append(float(v))
+                    if len(ys) == 0: break
+                    latest_data_year = ys[-1]
+                    predictor = makePrediction(ys, vs)
+                if int(year) - latest_data_year >= 5: break
+                v = predictor(int(year))
+            data.append(v)
+        return data
+
     def addToJSON(columns):
         json_dict[columns["cc"]].update({
             INDICATORS[columns["ic"]]: takeYears(columns)

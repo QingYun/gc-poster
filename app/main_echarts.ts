@@ -9,6 +9,8 @@ import drawScatter from "./draw-scatter";
 import drawPie from "./draw-pie";
 import drawLine from "./draw-line";
 
+const font_base: number = 48;
+
 enum GraphType { ScatterPlot, PieChart, LineChart };
 
 interface GraphOptions {
@@ -127,22 +129,23 @@ const subgraphs: GraphNode[] = [
   }
 ].map((graph: GraphOptions): GraphNode => {
   const elm = document.createElement("div");
-  elm.setAttribute("class", `graph`);
+  elm.setAttribute("class", `graph ${_.kebabCase(graph.name)}`);
   return <GraphNode>_.assign({ elm }, graph);
 });
 
 const elm_root = createElm("div", { "class": "container" });
-const elm_main = createElm("div", { "class": "graph-main" });
+const elm_graphs = createElm("div", { "class": "graphs" });
 const elm_title = createElm("h1",  { "class": "title" });
 
-elm_root.appendChild(elm_main);
 elm_root.appendChild(elm_title);
-subgraphs.forEach((g) => elm_root.appendChild(g.elm));
+subgraphs.forEach((g) => elm_graphs.appendChild(g.elm));
+elm_root.appendChild(elm_graphs);
 document.body.appendChild(elm_root);
 
 subgraphs.forEach((g) => {
   renderers[g.type](g.elm, _.assign({
-    title: `${g.name} vs. Medal`,
+    // title: `${g.name} vs. Medal`,
+    font_base,
     items: _.toPairs(data).map(([k, v]) => {
       return {
         name: v["country_name"],

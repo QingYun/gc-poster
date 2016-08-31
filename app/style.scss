@@ -51,43 +51,41 @@ $page-height: 7016px;
   position: relative;
   width: $page-width;
   overflow: hidden;
-  background-color: #fff6e8;
+  // background-color: #fff6e8;
 }
 
-.graph-main {
-  height: $page-height * 1.5;
-  width: $page-width * 1.5;
+.graphs {
+  bottom: 0%;
+  height: $page-height * .85;
   position: absolute;
-  top: -25%;
-  left: -25%;
+  width: $page-width;
 }
 
 .graph {
-  height: $page-height / 3.5;
-  width: $page-width / 3.5;
   display: inline-block;
-}
+  height: 25%;
+  // position: absolute;
+  width: 25%;
 
-.graph-population {
-  @include quarter-box;
-  left: 6%;
-  bottom: 6%;
-}
+  &.population {
+    left: 6%;
+    top: 0%;
+    // transform: translate(-50%, 0%);
+  }
 
-.graph-GDP {
-  @include quarter-box;
-  right: 6%;
-  top: 6%;
-}
+  &.gdp-per-capita {
+    right: 6%;
+    top: 6%;
+  }
 
-.graph-education {
-  @include quarter-box;
-  left: 6%;
-  top: 6%;
-}
+  &.education {
+    left: 6%;
+    top: 6%;
+  }
 
-.graph-information {
-  @include quarter-box;
-  bottom: 6%;
-  right: 6%;
+  &.information {
+    bottom: 6%;
+    right: 6%;
+  }
+
 }

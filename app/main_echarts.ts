@@ -7,8 +7,9 @@ import * as _ from "lodash";
 const data = require("./data.json");
 import drawScatter from "./draw-scatter";
 import drawPie from "./draw-pie";
+import drawLine from "./draw-line";
 
-enum GraphType { ScatterPlot, PieChart };
+enum GraphType { ScatterPlot, PieChart, LineChart };
 
 interface GraphOptions {
   name: string;
@@ -27,7 +28,8 @@ interface RendererMap {
 
 const renderers: RendererMap = {
   [GraphType.ScatterPlot]: drawScatter,
-  [GraphType.PieChart]: drawPie
+  [GraphType.PieChart]: drawPie,
+  [GraphType.LineChart]: drawLine,
 };
 
 function createElm(tag, attr) {
@@ -114,6 +116,14 @@ const subgraphs: GraphNode[] = [
     options: {
       formatter: n => numbro(n).format("0a"),
     }
+  },
+  {
+    name: "Host",
+    column: "host",
+    type: GraphType.LineChart,
+    options: {
+      categories: ["-8 year", "-4 year", "hosting year", "+4 year", "+8 year"]
+    }
   }
 ].map((graph: GraphOptions): GraphNode => {
   const elm = document.createElement("div");
@@ -136,7 +146,8 @@ subgraphs.forEach((g) => {
     items: _.toPairs(data).map(([k, v]) => {
       return {
         name: v["country_name"],
-        data: _.zip(v[g.column], v["medals"])
+        independent: v[g.column],
+        medals: v["medals"]
       };
     }),
   }, g.options));

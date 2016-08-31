@@ -9,7 +9,8 @@ function toSerieItem(d) {
       normal: {
         color: "rgba(0, 0, 0, .5)"
       }
-    }
+    },
+    data: _.zip(d.independent, d.medals)
   }, d);
 }
 

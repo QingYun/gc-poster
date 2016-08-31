@@ -3,7 +3,8 @@ import * as _ from "lodash";
 
 interface ItemType {
   name: string;
-  data: [number, number][];
+  independent: number[];
+  medals: number[];
 }
 
 interface SerieData {
@@ -27,7 +28,7 @@ function toSeries(items: ItemType[], medal_spliters: Spliter[], indie_spliters: 
   const radius = 100 / medal_spliters.length;
   const radius_width = radius * (3 / 5);
   return _(items)
-    .flatMap((item) => item.data)
+    .flatMap((item) => _.zip(item.independent, item.medals))
     .reduce<number[][]>((groups, [independent, medals]) => {
       medal_spliters.forEach(({inRange}, i) => {
         if (inRange(medals)) {

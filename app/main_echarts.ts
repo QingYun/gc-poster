@@ -85,7 +85,8 @@ const subgraphs: GraphNode[] = [
         { inRange: inRange(0, 65), label: "< 65%" },
         { inRange: inRange(65, 95), label: "65% ~ 95%" },
         { inRange: inRange(95), label: "> 95%" },
-      ]
+      ],
+      color: ['#e2c786', '#99c8b0', '#C88193']
     }
   },
   {
@@ -99,7 +100,8 @@ const subgraphs: GraphNode[] = [
         { inRange: inRange(60, 70), label: "60 ~ 70" },
         { inRange: inRange(70, 80), label: "70 ~ 80" },
         { inRange: inRange(80), label: "> 80" },
-      ]
+      ],
+      color: ['#c23531','#2f4554', '#61a0a8', '#d48265']
     }
   },
   {

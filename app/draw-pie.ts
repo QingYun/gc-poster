@@ -42,7 +42,6 @@ function toSeries(items: ItemType[], medal_spliters: Spliter[], indie_spliters: 
           indie_spliters.forEach(({inRange, label}, i) => {
             if (v && inRange(v)) {
               groups[i].push(v);
-              if (i == 0) console.log(v, label, medal_spliters[j].label)
             }
           });
           return groups;
@@ -61,7 +60,7 @@ function toSeries(items: ItemType[], medal_spliters: Spliter[], indie_spliters: 
 }
 
 export default function drawPie(elm_target: HTMLElement, options) {
-  const { title, font_base, items, medal_spliters, indie_spliters } = options;
+  const { title, font_base, items, medal_spliters, indie_spliters, color } = options;
   const chart = echarts.init(elm_target);
   const series = toSeries(items, medal_spliters, indie_spliters);
   chart.setOption({
@@ -87,6 +86,7 @@ export default function drawPie(elm_target: HTMLElement, options) {
       },
       data: _.map(indie_spliters, "label")
     },
-    series
+    series,
+    color,
   });
 }
